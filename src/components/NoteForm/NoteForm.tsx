@@ -25,7 +25,7 @@ const initialValues: initialValuesProps = {
 
 const NoteFormSchema = Yup.object().shape({
     title: Yup.string()
-        .min(3, "Title must be at least 2 characters")
+        .min(3, "Title must be at least 3 characters")
         .max(50, "Title is too long")
         .required("Title is required"),
     content: Yup.string()
@@ -54,8 +54,13 @@ export default function NoteForm({ onClose }: NoteFormProps) {
         values: initialValuesProps,
         actions: FormikHelpers<initialValuesProps>
     ) => {
-        mutation.mutate(values)
-        actions.resetForm()
+        mutation.mutate(values, {
+            onSuccess: () => {
+                actions.resetForm();
+                onClose();
+            },
+        })
+
     }
 
     return (
