@@ -3,7 +3,7 @@ import css from "./NoteList.module.css"
 
 interface NoteListProps {
     notes: Note[]
-    onClick: (id: string) => Promise<void>
+    onClick: (id: string) => void
 }
 
 export default function NoteList({ notes, onClick }: NoteListProps) {

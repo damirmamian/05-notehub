@@ -1,45 +1,48 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query"
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import SearchBox from "../SearchBox/SearchBox"
 import css from "./App.module.css"
 import { useEffect, useState } from "react"
-import { createNote, deleteNote, fetchNotes } from "../../services/noteService"
+import { deleteNote, fetchNotes } from "../../services/noteService"
 import NoteList from "../NoteList/NoteList"
-import type { Note } from "../../types/note";
 import Pagination from "../Pagination/Pagination"
 import 'modern-normalize/modern-normalize.css';
 import Modal from "../Modal/Modal"
 import { useDebouncedCallback } from 'use-debounce';
 import Loader from "../Loader/Loader"
 import Error from "../Error/Error"
+import NoteForm from "../NoteForm/NoteForm"
 
 
 export default function App() {
   const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
   const [topic, setTopic] = useState("")
-  const [notes, setNotes] = useState<Note[]>([])
   const [modalOpen, setModalOpen] = useState(false)
-  const { isLoading, isError } = useQuery({
-    queryKey: ["note", page, topic],
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["notes", page, topic],
     queryFn: () => fetchNotes(page, topic),
-    enabled: topic !== "",
     placeholderData: keepPreviousData
   })
 
+  const notes = data?.notes ?? []
+  const totalPages = data?.totalPages ?? 0
+
+  const queryClient = useQueryClient()
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteNote,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notes"] })
+    },
+  })
+
+  const handleDelete = (id: string) => {
+    deleteMutation.mutate(id)
+  }
+
   const handleFetch = async () => {
     const data = await fetchNotes(page, topic)
-    setNotes(data.notes)
-    setTotalPages(data.totalPages)
-  }
-
-  const handleCreate = async (values: Note) => {
-    await createNote(values)
-    handleFetch()
-  }
-
-  const handleDelete = async (id: string) => {
-    await deleteNote(id)
-    handleFetch()
+    return data.notes
   }
 
   const updateSearchQuery = useDebouncedCallback(
@@ -68,7 +71,7 @@ export default function App() {
     {isLoading && <Loader />}
     {isError && <Error />}
     {notes.length > 0 && <NoteList notes={notes} onClick={handleDelete} />}
-    {modalOpen && <Modal onCreate={handleCreate} onClose={closeModal} />}
+    {modalOpen && <Modal onClose={closeModal}><NoteForm onClose={closeModal} /> </Modal>}
 
   </div >
   )

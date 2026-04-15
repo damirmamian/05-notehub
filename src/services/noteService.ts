@@ -3,14 +3,13 @@ import type { Note } from "../types/note";
 
 interface fetchNotesProps {
     notes: Note[],
-    page: number
     totalPages: number
 }
 
 const note = axios.create({
     baseURL: "https://notehub-public.goit.study/api",
     headers: {
-        Authorization: `Bearer ${import.meta.env.VITE_API_KEY}`
+        Authorization: `Bearer ${import.meta.env.VITE_NOTEHUB_TOKEN}`
     }
 })
 
@@ -26,18 +25,18 @@ export async function fetchNotes(page: number, mysearchtext: string) {
     return response.data
 }
 
-export async function createNote({ title, content, tag }: Note) {
-    const message = await note.post<fetchNotesProps>("/notes", {
-        title: title,
-        content: content,
-        tag: tag
-    })
-    return message.data
+export async function createNote(data: {
+    title: string
+    content: string
+    tag: string
+}) {
+    const res = await note.post("/notes", data)
+    return res.data
 }
 
 export async function deleteNote(id: string) {
-    const request = await note.delete<fetchNotesProps>(`/notes/${id}`)
-    return request
+    const request = await note.delete<Note>(`/notes/${id}`)
+    return request.data
 }
 
 export default { fetchNotes, createNote, deleteNote }
