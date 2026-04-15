@@ -1,8 +1,8 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import SearchBox from "../SearchBox/SearchBox"
 import css from "./App.module.css"
-import { useEffect, useState } from "react"
-import { deleteNote, fetchNotes } from "../../services/noteService"
+import { useState } from "react"
+import { fetchNotes } from "../../services/noteService"
 import NoteList from "../NoteList/NoteList"
 import Pagination from "../Pagination/Pagination"
 import 'modern-normalize/modern-normalize.css';
@@ -26,27 +26,11 @@ export default function App() {
   const notes = data?.notes ?? []
   const totalPages = data?.totalPages ?? 0
 
-  const queryClient = useQueryClient()
-
-  const deleteMutation = useMutation({
-    mutationFn: deleteNote,
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] })
-    },
-  })
-
-  const handleDelete = (id: string) => {
-    deleteMutation.mutate(id)
-  }
-
-  const handleFetch = async () => {
-    const data = await fetchNotes(page, topic)
-    return data.notes
-  }
-
   const updateSearchQuery = useDebouncedCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => setTopic(e.target.value),
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setTopic(e.target.value)
+      setPage(1)
+    },
     300
   );
 
@@ -57,11 +41,6 @@ export default function App() {
     setModalOpen(false)
   }
 
-  useEffect(() => {
-    const fetchData = async () => await handleFetch()
-    fetchData()
-  }, [page, topic])
-
   return (<div className={css.app}>
     <header className={css.toolbar}>
       <SearchBox onChange={updateSearchQuery} />
@@ -70,7 +49,7 @@ export default function App() {
     </header>
     {isLoading && <Loader />}
     {isError && <Error />}
-    {notes.length > 0 && <NoteList notes={notes} onClick={handleDelete} />}
+    {notes.length > 0 && <NoteList notes={notes} />}
     {modalOpen && <Modal onClose={closeModal}><NoteForm onClose={closeModal} /> </Modal>}
 
   </div >

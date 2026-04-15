@@ -27,10 +27,10 @@ export async function fetchNotes(page: number, mysearchtext: string) {
 
 export async function createNote(data: {
     title: string
-    content: string
+    content: string | null
     tag: string
 }) {
-    const res = await note.post("/notes", data)
+    const res = await note.post<Note>("/notes", data)
     return res.data
 }
 

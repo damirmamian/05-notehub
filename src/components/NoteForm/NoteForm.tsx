@@ -6,6 +6,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { createNote } from "../../services/noteService"
 
 
+interface NoteFormProps {
+    onClose: () => void
+}
+
 interface initialValuesProps {
     title: string,
     content: string,
@@ -32,12 +36,13 @@ const NoteFormSchema = Yup.object().shape({
 });
 
 
-export default function NoteForm({ onClose }: { onClose: () => void }) {
+export default function NoteForm({ onClose }: NoteFormProps) {
 
     const queryClient = useQueryClient()
 
     const mutation = useMutation({
         mutationFn: createNote,
+        retry: false,
 
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["notes"] })
@@ -70,7 +75,7 @@ export default function NoteForm({ onClose }: { onClose: () => void }) {
                         rows={8}
                         className={css.textarea}
                     />
-                    <ErrorMessage name="title" component="span" className={css.error} />
+                    <ErrorMessage name="content" component="span" className={css.error} />
                 </div>
 
                 <div className={css.formGroup}>
@@ -82,7 +87,7 @@ export default function NoteForm({ onClose }: { onClose: () => void }) {
                         <option value="Meeting">Meeting</option>
                         <option value="Shopping">Shopping</option>
                     </Field>
-                    <ErrorMessage name="title" component="span" className={css.error} />
+                    <ErrorMessage name="tag" component="span" className={css.error} />
                 </div>
 
                 <div className={css.actions}>
